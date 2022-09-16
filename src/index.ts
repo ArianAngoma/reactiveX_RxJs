@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs'
+import { Observable, Observer, Subject } from 'rxjs'
 
 const observer: Observer<number> = {
   next: (value) => console.log('next', value),
@@ -6,37 +6,23 @@ const observer: Observer<number> = {
   complete: () => console.info('complete')
 }
 
-const interval$ = new Observable<number>(subscriber => {
-  let count = 0
+const intervalo$ = new Observable<number>(subscriber => {
+  const interval = setInterval(() => subscriber.next(Math.random()), 5000)
 
-  const interval = setInterval(() => {
-    count++
-    subscriber.next(count)
-
-    console.log(count)
-  }, 1000)
-
-  setTimeout(() => {
-    subscriber.complete()
-  }, 2500)
-
-  return () => {
-    clearInterval(interval)
-    console.log('Interval destroyed')
-  }
+  return () => clearInterval(interval)
 })
 
-const subscription1 = interval$.subscribe(observer)
-const subscription2 = interval$.subscribe(observer)
-const subscription3 = interval$.subscribe(observer)
+// const subscription1 = intervalo$.subscribe(numberRandom => console.log('subs1', numberRandom))
+// const subscription2 = intervalo$.subscribe(numberRandom => console.log('subs2', numberRandom))
 
-subscription1.add(subscription2)
-subscription2.add(subscription3)
+/*
+* 1- Casteo múltiple
+* 2- También es un observer
+* 3- Next, error y complete
+*  */
+const subject$ = new Subject()
 
-setTimeout(() => {
-  subscription1.unsubscribe()
-  // subscription2.unsubscribe()
-  // subscription3.unsubscribe()
+intervalo$.subscribe(subject$)
 
-  console.log('Completed timeout')
-}, 6000)
+const subscription1 = subject$.subscribe(numberRandom => console.log('subs1', numberRandom))
+const subscription2 = subject$.subscribe(numberRandom => console.log('subs2', numberRandom))
